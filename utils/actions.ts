@@ -1,17 +1,17 @@
-'use server';
+"use server";
 
-import prisma from './db';
-import { auth } from '@clerk/nextjs/server';
-import { JobType, CreateAndEditJobType, createAndEditJobSchema } from './types';
-import { redirect } from 'next/navigation';
-import { Prisma } from '@prisma/client';
-import dayjs from 'dayjs';
+import prisma from "./db";
+import { auth } from "@clerk/nextjs/server";
+import { JobType, CreateAndEditJobType, createAndEditJobSchema } from "./types";
+import { redirect } from "next/navigation";
+import { Prisma } from "@prisma/client";
+import dayjs from "dayjs";
 
 function authenticateAndRedirect(): string {
   const { userId } = auth();
 
   if (!userId) {
-    redirect('/');
+    redirect("/");
   }
   return userId;
 }
@@ -79,7 +79,7 @@ export async function getAllJobsAction({
         ],
       };
     }
-    if (jobStatus && jobStatus !== 'all') {
+    if (jobStatus && jobStatus !== "all") {
       whereClause = {
         ...whereClause,
         status: jobStatus,
@@ -92,7 +92,7 @@ export async function getAllJobsAction({
       skip,
       take: limit,
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
     const count: number = await prisma.job.count({
@@ -137,7 +137,7 @@ export async function getSingleJobAction(id: string): Promise<JobType | null> {
     job = null;
   }
   if (!job) {
-    redirect('/jobs');
+    redirect("/jobs");
   }
   return job;
 }
@@ -173,7 +173,7 @@ export async function getStatsAction(): Promise<{
   // await new Promise((resolve) => setTimeout(resolve, 5000));
   try {
     const stats = await prisma.job.groupBy({
-      by: ['status'],
+      by: ["status"],
       _count: {
         status: true,
       },
@@ -194,7 +194,7 @@ export async function getStatsAction(): Promise<{
     };
     return defaultStats;
   } catch (error) {
-    redirect('/jobs');
+    redirect("/jobs");
   }
 }
 
@@ -202,7 +202,7 @@ export async function getChartsDataAction(): Promise<
   Array<{ date: string; count: number }>
 > {
   const userId = authenticateAndRedirect();
-  const sixMonthsAgo = dayjs().subtract(6, 'month').toDate();
+  const sixMonthsAgo = dayjs().subtract(6, "month").toDate();
   try {
     const jobs = await prisma.job.findMany({
       where: {
@@ -212,12 +212,12 @@ export async function getChartsDataAction(): Promise<
         },
       },
       orderBy: {
-        createdAt: 'asc',
+        createdAt: "asc",
       },
     });
 
     let applicationsPerMonth = jobs.reduce((acc, job) => {
-      const date = dayjs(job.createdAt).format('MMM YY');
+      const date = dayjs(job.createdAt).format("MMM YY");
 
       const existingEntry = acc.find((entry) => entry.date === date);
 
@@ -232,6 +232,24 @@ export async function getChartsDataAction(): Promise<
 
     return applicationsPerMonth;
   } catch (error) {
-    redirect('/jobs');
+    redirect("/jobs");
+  }
+}
+
+export async function getAllJobsForDownloadAction(): Promise<JobType[]> {
+  const userId = authenticateAndRedirect();
+  try {
+    const jobs: JobType[] = await prisma.job.findMany({
+      where: {
+        clerkId: userId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+    return jobs;
+  } catch (error) {
+    console.error(error);
+    return [];
   }
 }
