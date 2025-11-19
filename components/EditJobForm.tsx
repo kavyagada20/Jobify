@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
@@ -13,7 +14,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 
-import { CustomFormField, CustomFormSelect } from './FormComponents';
+import {
+  CustomFormField,
+  CustomFormSelect,
+  CustomFormTextArea,
+} from './FormComponents';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import {
   createJobAction,
@@ -55,13 +60,31 @@ function EditJobForm({ jobId }: { jobId: string }) {
   const form = useForm<CreateAndEditJobType>({
     resolver: zodResolver(createAndEditJobSchema),
     defaultValues: {
-      position: data?.position || '',
-      company: data?.company || '',
-      location: data?.location || '',
-      status: (data?.status as JobStatus) || JobStatus.Pending,
-      mode: (data?.mode as JobMode) || JobMode.FullTime,
+      position: '',
+      company: '',
+      location: '',
+      status: JobStatus.Pending,
+      mode: JobMode.FullTime,
+      jobDate: new Date().toISOString().split('T')[0],
+      notes: '',
     },
   });
+
+  useEffect(() => {
+    if (data) {
+      form.reset({
+        position: data.position,
+        company: data.company,
+        location: data.location,
+        status: data.status as JobStatus,
+        mode: data.mode as JobMode,
+        jobDate: data.jobDate
+          ? new Date(data.jobDate).toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0],
+        notes: data.notes ?? '',
+      });
+    }
+  }, [data, form]);
 
   // 2. Define a submit handler.
   function onSubmit(values: CreateAndEditJobType) {
@@ -84,6 +107,13 @@ function EditJobForm({ jobId }: { jobId: string }) {
           <CustomFormField name='company' control={form.control} />
           {/* location */}
           <CustomFormField name='location' control={form.control} />
+          {/* job date */}
+          <CustomFormField
+            name='jobDate'
+            control={form.control}
+            type='date'
+            labelText='job date'
+          />
 
           {/* job status */}
           <CustomFormSelect
@@ -100,6 +130,12 @@ function EditJobForm({ jobId }: { jobId: string }) {
             items={Object.values(JobMode)}
           />
 
+          <CustomFormTextArea
+            name='notes'
+            control={form.control}
+            labelText='notes'
+            placeholder='Add interview prep, follow-ups, or reminders...'
+          />
           <Button
             type='submit'
             className='self-end capitalize'

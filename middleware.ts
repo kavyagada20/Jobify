@@ -4,10 +4,24 @@ const isProtectedRoute = createRouteMatcher([
   '/add-job',
   '/jobs(.*)',
   '/stats',
+  '/products(.*)',
 ]);
 
-export default clerkMiddleware((auth, req) => {
-  if (isProtectedRoute(req)) auth().protect();
+const isAdminRoute = createRouteMatcher([
+  '/admin(.*)',
+  '/api/products(.*)',
+]);
+
+export default clerkMiddleware(async (auth, req) => {
+  if (isProtectedRoute(req)) {
+    auth().protect();
+  }
+
+  // Admin routes are protected by API route handlers
+  // Middleware just ensures user is authenticated
+  if (isAdminRoute(req)) {
+    auth().protect();
+  }
 });
 
 export const config = {

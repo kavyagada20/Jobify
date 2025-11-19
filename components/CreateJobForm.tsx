@@ -12,7 +12,11 @@ import {
 
 import { Form } from '@/components/ui/form';
 import { Button } from './ui/button';
-import { CustomFormField, CustomFormSelect } from './FormComponents';
+import {
+  CustomFormField,
+  CustomFormSelect,
+  CustomFormTextArea,
+} from './FormComponents';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createJobAction } from '@/utils/actions';
@@ -29,6 +33,8 @@ function CreateJobForm() {
       location: '',
       status: JobStatus.Pending,
       mode: JobMode.FullTime,
+      jobDate: new Date().toISOString().split('T')[0],
+      notes: '',
     },
   });
   const queryClient = useQueryClient();
@@ -39,17 +45,25 @@ function CreateJobForm() {
     onSuccess: (data) => {
       if (!data) {
         toast({
-          description: 'there was an error',
+          description: 'Failed to create job. Please check the console for details.',
+          variant: 'destructive',
         });
         return;
       }
-      toast({ description: 'job created' });
+      toast({ description: 'Job created successfully!' });
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
       queryClient.invalidateQueries({ queryKey: ['stats'] });
       queryClient.invalidateQueries({ queryKey: ['charts'] });
 
       router.push('/jobs');
-      // form.reset();
+      form.reset();
+    },
+    onError: (error) => {
+      console.error('Job creation error:', error);
+      toast({
+        description: error instanceof Error ? error.message : 'An unexpected error occurred',
+        variant: 'destructive',
+      });
     },
   });
 
@@ -70,6 +84,13 @@ function CreateJobForm() {
           <CustomFormField name='company' control={form.control} />
           {/* location */}
           <CustomFormField name='location' control={form.control} />
+          {/* job date */}
+          <CustomFormField
+            name='jobDate'
+            control={form.control}
+            type='date'
+            labelText='job date'
+          />
           {/* job status */}
           <CustomFormSelect
             name='status'
@@ -83,6 +104,12 @@ function CreateJobForm() {
             control={form.control}
             labelText='job mode'
             items={Object.values(JobMode)}
+          />
+          <CustomFormTextArea
+            name='notes'
+            control={form.control}
+            labelText='notes'
+            placeholder='Add interview prep, follow-ups, or reminders...'
           />
           <Button
             type='submit'

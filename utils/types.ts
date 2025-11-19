@@ -10,6 +10,8 @@ export type JobType = {
   location: string;
   status: string;
   mode: string;
+  jobDate: Date | null;
+  notes: string | null;
 };
 
 export enum JobStatus {
@@ -36,6 +38,19 @@ export const createAndEditJobSchema = z.object({
   }),
   status: z.nativeEnum(JobStatus),
   mode: z.nativeEnum(JobMode),
+  jobDate: z
+    .string()
+    .min(1, { message: 'please select a job date.' })
+    .refine((value) => !Number.isNaN(Date.parse(value)), {
+      message: 'please provide a valid job date.',
+    }),
+  notes: z
+    .string()
+    .max(500, {
+      message: 'notes cannot exceed 500 characters.',
+    })
+    .optional()
+    .or(z.literal('')),
 });
 
 export type CreateAndEditJobType = z.infer<typeof createAndEditJobSchema>;

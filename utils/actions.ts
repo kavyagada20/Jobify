@@ -22,18 +22,40 @@ export async function createJobAction(
   // await new Promise((resolve) => setTimeout(resolve, 3000));
   const userId = authenticateAndRedirect();
   try {
-    createAndEditJobSchema.parse(values);
+    // Validate the input
+    const validated = createAndEditJobSchema.parse(values);
+    const { jobDate, notes, ...rest } = validated;
+    
+    // Handle job date - use provided date or default to today
+    const jobDateValue = jobDate ? new Date(jobDate) : new Date();
+    
+    // Handle notes - trim and set to null if empty
+    const notesValue = notes && typeof notes === 'string' && notes.trim() 
+      ? notes.trim() 
+      : null;
+    
     const job: JobType = await prisma.job.create({
       data: {
-        ...values,
-
+        ...rest,
+        jobDate: jobDateValue,
+        notes: notesValue,
         clerkId: userId,
       },
     });
+    
     return job;
   } catch (error) {
-    console.error(error);
-    return null;
+    console.error('Error creating job:', error);
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+    // Re-throw to let the client handle it
+    throw new Error(
+      error instanceof Error 
+        ? `Failed to create job: ${error.message}` 
+        : 'Failed to create job. Please try again.'
+    );
   }
 }
 
@@ -149,13 +171,16 @@ export async function updateJobAction(
   const userId = authenticateAndRedirect();
 
   try {
+    const { jobDate, notes, ...rest } = values;
     const job: JobType = await prisma.job.update({
       where: {
         id,
         clerkId: userId,
       },
       data: {
-        ...values,
+        ...rest,
+        jobDate: jobDate ? new Date(jobDate) : null,
+        notes: notes?.trim() ? notes.trim() : null,
       },
     });
     return job;

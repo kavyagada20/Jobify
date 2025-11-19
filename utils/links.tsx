@@ -1,4 +1,4 @@
-import { AreaChart, Layers, AppWindow } from 'lucide-react';
+import { AreaChart, Layers, Search, Shield } from 'lucide-react';
 
 type NavLink = {
   href: string;
@@ -14,13 +14,18 @@ const links: NavLink[] = [
   },
   {
     href: '/jobs',
-    label: 'all jobs',
-    icon: <AppWindow />,
+    label: 'find jobs',
+    icon: <Search />,
   },
   {
     href: '/stats',
     label: 'stats',
     icon: <AreaChart />,
+  },
+  {
+    href: '/admin',
+    label: 'admin',
+    icon: <Shield />,
   },
 ];
 

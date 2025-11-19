@@ -14,22 +14,32 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from './ui/input';
+import { Textarea } from './ui/textarea';
 
 type CustomFormFieldProps = {
   name: string;
   control: Control<any>;
+  type?: string;
+  labelText?: string;
+  placeholder?: string;
 };
 
-export function CustomFormField({ name, control }: CustomFormFieldProps) {
+export function CustomFormField({
+  name,
+  control,
+  type = 'text',
+  labelText,
+  placeholder,
+}: CustomFormFieldProps) {
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel className='capitalize'>{name}</FormLabel>
+          <FormLabel className='capitalize'>{labelText || name}</FormLabel>
           <FormControl>
-            <Input {...field} />
+            <Input type={type} placeholder={placeholder} {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -82,3 +92,35 @@ export function CustomFormSelect({
   );
 }
 export default CustomFormSelect;
+
+type CustomFormTextAreaProps = {
+  name: string;
+  control: Control<any>;
+  labelText?: string;
+  placeholder?: string;
+  rows?: number;
+};
+
+export function CustomFormTextArea({
+  name,
+  control,
+  labelText,
+  placeholder,
+  rows = 4,
+}: CustomFormTextAreaProps) {
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className='md:col-span-2 lg:col-span-3'>
+          <FormLabel className='capitalize'>{labelText || name}</FormLabel>
+          <FormControl>
+            <Textarea rows={rows} placeholder={placeholder} {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
